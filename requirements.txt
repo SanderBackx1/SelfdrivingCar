@@ -1,0 +1,4 @@
+inputs
+numpy
+pillow
+opencv-python
