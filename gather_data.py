@@ -19,8 +19,11 @@ def record_game_pad():
 
     # while steering_x_captured == None or steering_y_captured == None or (brake_captured == None and throttle_captured == None):
     while input_counter<100:
+
+
         events = get_gamepad()
         # print(f'X: {steering_x_captured}\tY:{steering_y_captured}\tT:{throttle_captured}\tB:{brake_captured}')
+
         for event in events:
             input_counter+=1
             if event.code == "ABS_Z" and event.state != None:
@@ -42,26 +45,39 @@ def record_game_pad():
     file.close()
 
 
-
 def run():
     global counter
+    record = False
     while True:
-        record_game_pad()
-        printscreen = np.array(ImageGrab.grab(bbox=(0, 80, 1024, 700)))
-        cv2.imshow('window', cv2.cvtColor(printscreen, cv2.COLOR_BGR2RGB))
+        
+        #smoll screen 
+        # printscreen = np.array(ImageGrab.grab(bbox=(0, 80, 1024, 700)))
+        # cv2.imshow('window', cv2.cvtColor(printscreen, cv2.COLOR_BGR2RGB))
+
+
+        #big screen
+        printscreen = np.array(ImageGrab.grab(bbox=(0, 80, 1680, 900)))
+        smoll = resized = cv2.resize(printscreen, (int(1920/3),int(1080/3)))
+        cv2.imshow('window', cv2.cvtColor(smoll, cv2.COLOR_BGR2RGB))
 
         ##change to your preferred folder
-        cv2.imwrite(f'D:/Desktop/images/{counter}_image.png', printscreen)
+
+        if record:
+            record_game_pad()
+            cv2.imwrite(f'D:/Desktop/images/{counter}_image.png', printscreen)
+            print('took screen 😁')
+            counter +=1        
 
         ##Check fps if needed
         # print('loop took {} seconds'.format(time.time()-last_time))
         # last_time = time.time()
-
-        print('took screen 😁')
-        counter +=1        
-        if  cv2.waitKey(25) & 0xFF == ord('q'):
+        k = cv2.waitKey(25)
+        if  k == ord('q'):
             cv2.destroyAllWindows()
             break
+        elif k == ord('r'):
+            record = not record
+            print(f'Record {record}')
 
 if __name__ == '__main__':
     print("Prepare to drive!")
