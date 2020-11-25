@@ -40,7 +40,7 @@ def record_game_pad():
     brake_captured = 0 if brake_captured == None else brake_captured
     throttle_captured = 0 if throttle_captured == None else throttle_captured
 
-    file = open("data/inputs.csv", "a")
+    file = open("newdata/inputs.csv", "a")
     file.write(str(counter) + "_image.png" + "," + str(steering_x_captured) + "," + str(steering_y_captured) + "," + str(throttle_captured) + "," + str(brake_captured) + "\n")
     file.close()
 
@@ -60,7 +60,7 @@ def run():
         margin = 40
         printscreen = np.array(ImageGrab.grab(bbox=(0, margin, resolutionx, resolutiony+margin)))
 
-        smoll = resized = cv2.resize(printscreen, (int(resolutionx/2),int(resolutiony/2)))
+        smoll = cv2.resize(printscreen, (int(resolutionx/2),int(resolutiony/2)))
         cv2.imshow('window', cv2.cvtColor(smoll, cv2.COLOR_BGR2RGB))
 
         
@@ -69,7 +69,7 @@ def run():
 
         if record:
             record_game_pad()
-            cv2.imwrite(f'D:/Desktop/images/{counter}_image.png', printscreen)
+            cv2.imwrite(f'D:/Documenten/Thomasmore/AI/self_driving/newdatanewdata/images/{counter}_image.png', printscreen)
             print('took screen 😁')
             counter +=1        
 
