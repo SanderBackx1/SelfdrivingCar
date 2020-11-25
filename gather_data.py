@@ -59,9 +59,9 @@ def run():
         resolutionx, resolutiony = (1600,900)
         margin = 40
         printscreen = np.array(ImageGrab.grab(bbox=(0, margin, resolutionx, resolutiony+margin)))
-
+        printscreen = cv2.cvtColor(printscreen, cv2.COLOR_BGR2RGB)
         smoll = cv2.resize(printscreen, (int(resolutionx/2),int(resolutiony/2)))
-        cv2.imshow('window', cv2.cvtColor(smoll, cv2.COLOR_BGR2RGB))
+        cv2.imshow('window', smoll)
 
         
 
@@ -69,7 +69,7 @@ def run():
 
         if record:
             record_game_pad()
-            cv2.imwrite(f'D:/Documenten/Thomasmore/AI/self_driving/newdatanewdata/images/{counter}_image.png', printscreen)
+            cv2.imwrite(f'D:/Documenten/Thomasmore/AI/self_driving/newdata/images/{counter}_image.png', printscreen)
             print('took screen 😁')
             counter +=1        
 
