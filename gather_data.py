@@ -56,9 +56,11 @@ def run():
 
 
         #big screen
-        printscreen = np.array(ImageGrab.grab(bbox=(0, 80, 1680, 900)))
+        resolutionx, resolutiony = (1600,900)
+        margin = 40
+        printscreen = np.array(ImageGrab.grab(bbox=(0, margin, resolutionx, resolutiony+margin)))
 
-        smoll = resized = cv2.resize(printscreen, (int(1680/3),int(900/3)))
+        smoll = resized = cv2.resize(printscreen, (int(resolutionx/2),int(resolutiony/2)))
         cv2.imshow('window', cv2.cvtColor(smoll, cv2.COLOR_BGR2RGB))
 
         
