@@ -42,6 +42,10 @@ df_final = df_data.copy()
 del df_final["Throttle"]
 del df_final["Brake"]
 
+imagelist = [x[14:]for x in images]
+df_final_removed = df_final[df_final['img_path'].isin(imagelist)]
+df_final_removed = df_final_removed.drop_duplicates(subset=['img_path'], keep='last')
+
 def get_x (r): return Path(f"./data/images/{r['img_path']}")
 def get_y(r): return [r['X'], r['Z']]
 
@@ -50,12 +54,12 @@ datablock = DataBlock(
                 blocks=(ImageBlock,RegressionBlock),
                 get_x=get_x,
                 get_y=get_y,
-                item_tfms=Resize(244, method='squish'),
+                item_tfms=Resize((277,480), method='squish'),
                 splitter=RandomSplitter(valid_pct=0.2, seed=32))
 
-dls = datablock.dataloaders(df_final)
-learn = cnn_learner(dls, resnet18, y_range=(-1,1), metrics=mse )
-learn = learn.load('racecar')
+dls = datablock.dataloaders(df_final_removed)
+learn = cnn_learner(dls, resnet50, y_range=(0,1), metrics=mse )
+learn = learn.load('racecar50epochs')
 
 def getOutput(img):
     return learn.predict(img)
