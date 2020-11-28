@@ -141,6 +141,7 @@ def run():
                 break
             elif k == ord('r'):
                 record = not record
+                time.sleep(5)
                 print(f'Record {record}')
 
 if __name__ == '__main__':
