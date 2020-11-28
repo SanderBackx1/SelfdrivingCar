@@ -104,8 +104,8 @@ def run():
     record = False
     sock.settimeout(3)
     framecounter = 1 
-    frames = 20
-    with open("./data/newdata/inputs.csv", 'w', newline='', buffering=1) as outfile:
+    frames = 10
+    with open("./data/newdata/inputs.csv", 'a', newline='', buffering=1) as outfile:
         csv_writer = csv.writer(outfile)
         while runLoops:
 
