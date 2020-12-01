@@ -1,3 +1,4 @@
+import gather_data
 from racemodel import getOutput
 import pyvjoy
 import cv2
@@ -121,7 +122,16 @@ def run():
             time.sleep(5)
         elif k == ord('f') or keyboard.is_pressed('f'):
             showFps = not showFps
-       
+        elif k == ord('w') or keyboard.is_pressed('w'): 
+            autopilot = False
+            print('Stop autopilot')
+        elif not autopilot:
+            file = open("./data/newdata/inputs.csv", "a")
+            t1 = Thread(target = datasteam)
+            t2 = Thread(target = run)
+            t1.start()
+            t2.start()
+            file.close()
 
 if __name__ == '__main__':
     print("Prepare to drive!")
