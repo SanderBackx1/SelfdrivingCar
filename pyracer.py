@@ -125,9 +125,12 @@ def run():
         elif k == ord('w') or keyboard.is_pressed('w'): 
             autopilot = False
             print('Stop autopilot')
+        elif not autopilot:
             file = open("./data/newdata/inputs.csv", "a")
             t1 = Thread(target = datasteam)
+            t2 = Thread(target = run)
             t1.start()
+            t2.start()
             file.close()
 
 if __name__ == '__main__':
