@@ -1,11 +1,14 @@
-import gather_data
+from gather_data import takeScreens, datastream, DSOutput
 from racemodel import getOutput
+from threading import Thread
 import pyvjoy
 import cv2
 import time
+import settings
 from PIL import ImageGrab
 import numpy as np
 import keyboard
+from functools import partial
 
 j = pyvjoy.VJoyDevice(1)
 x_max = 32767
@@ -59,9 +62,6 @@ def inputModel(steer, accel,brake):
     j.update()
 
 
-
-
-
 def resetkey():
     j.data.wAxisX = int(x_max/2)
     j.data.wAxisZ=int(x_max/2)
@@ -78,15 +78,19 @@ def listenkeys():
         keys[keys.index(k)] = keyboard.is_pressed(k)
         print("manual steering: "+str(keys))
         
-def run():
-
+def run(udp):
+    settings.init()
     autopilot = False
+    recording = False
     showFps = False
     last_time = time.time()
-    global counter
+    framecounter = 0 
+
+    global dsout
+
     # print('get ready to bind in 3s')
     # time.sleep(3)
-    while True:
+    while settings.run_loops:
         # printscreen = np.array(ImageGrab.grab(bbox=(0, 80, 1024, 700)))
         # resized = cv2.resize(printscreen, (244,244))
         # cv2.imshow('window', cv2.cvtColor(printscreen, cv2.COLOR_BGR2RGB))
@@ -109,31 +113,39 @@ def run():
             prediction = getOutput(resized)
             # print(prediction[0][0], prediction[0][1])
             sendInputs(prediction[0][0], prediction[0][1])
-        
+        if recording:
+            framecounter+=1
+            if framecounter%5==0:
+                cv2.imwrite(f'D:/Documenten/Thomasmore/AI/self_driving/data/newdata/images/s_{settings.counter}_image.png', printscreen)
+                file = open("./data/newdata/inputs.csv", "a")
+                print(f'{settings.counter}_image.png,{udp.steer}, {udp.accel}, {udp.brake}')
+                file.write('s_'+str(settings.counter) + "_image.png" + "," + str(udp.speed) + "," + str(udp.steer) + "," + str(udp.accel) + "," + str(udp.brake) + "\n")
+                settings.counter+=1
+                file.close()
+
 
         k = cv2.waitKey(25)
         if  k == ord('g') or keyboard.is_pressed('g'):
+            settings.run_loops = False
             cv2.destroyAllWindows()
             break
         elif k == ord('v') or keyboard.is_pressed('v') :
             resetkey()
+            recording = False
             autopilot = not autopilot
-            print('autopilot in 5s')
-            time.sleep(5)
+            print(f'autopilot {autopilot}')
         elif k == ord('f') or keyboard.is_pressed('f'):
             showFps = not showFps
-        elif k == ord('w') or keyboard.is_pressed('w'): 
+        elif k == ord('w') or keyboard.is_pressed('w') or keyboard.is_pressed('d') or keyboard.is_pressed('a')  : 
             autopilot = False
-            print('Stop autopilot')
-        elif not autopilot:
-            file = open("./data/newdata/inputs.csv", "a")
-            t1 = Thread(target = datasteam)
-            t2 = Thread(target = run)
-            t1.start()
-            t2.start()
-            file.close()
-
+            if not recording:
+                recording = True
+                print('Stop autopilot, start recording')
+        
 if __name__ == '__main__':
     print("Prepare to drive!")
-    run()
-
+    dsout = DSOutput()
+    t1 = Thread(target = partial(run, dsout))
+    t2 = Thread(target = partial(datastream,dsout))
+    t1.start()
+    t2.start()

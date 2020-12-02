@@ -9,6 +9,7 @@ import time
 import struct
 import socket
 import csv
+import settings
 from threading import Thread
 
 counter = 0
@@ -76,30 +77,31 @@ def transformX(x):
   new_x = new_x / (x_max+x_max)
 
   return   new_x 
-def datasteam():
-    global speed
-    global brake
-    global accel
-    global steer
-    global runLoops
-    while runLoops:
+def datastream(dsout):
+    while settings.run_loops:
         data, addr = sock.recvfrom(1024)
         fdp = ForzaDataPacket(data, packet_format='fh4')
-        # values = struct.unpack('<i I 27f 4i 20f 5i 12x 17f H 6B 3b x', data)
-        # speed = values[61]
-        # brake = values[84]
-        speed = fdp.speed
-        brake = fdp.brake
-        accel = fdp.accel
-        steer = fdp.steer
+        dsout.speed = fdp.speed
+        dsout.brake = fdp.brake
+        dsout.accel = fdp.accel
+        dsout.steer = fdp.steer
+
+
 
         # print(f'Speed {fdp.speed} Brake {fdp.brake} Acceleration {fdp.accel}  {fdp.steer}')
         # print(f'Speed: {speed}, Brake: {brake}, ')
         
 
+class DSOutput:
+    def __init__(self):
+        self.speed = 0
+        self.brake = 0
+        self.accel = 0
+        self.steer = 0
 
-def run():
-    global counter
+
+
+def takeScreens():
     global runLoops
     record = False
     sock.settimeout(3)
@@ -126,8 +128,8 @@ def run():
                 # record_game_pad()
                 if framecounter%frames==0:
                     framecounter = framecounter-frames
-                    cv2.imwrite(f'D:/Documenten/Thomasmore/AI/self_driving/data/newdata/images/{counter}_image.png', printscreen)
-                    str_towrite = [str(counter) + "_image.png", speed ,steer, accel, brake]
+                    cv2.imwrite(f'D:/Documenten/Thomasmore/AI/self_driving/data/newdata/images/{settings.counter}_image.png', printscreen)
+                    str_towrite = [str(settings.counter) + "_image.png", speed ,steer, accel, brake]
                     csv_writer.writerow(str_towrite)
                     # file.write( + "\n")            
                     print('took screen 😁')
@@ -148,8 +150,8 @@ if __name__ == '__main__':
     print("Prepare to drive!")
     file = open("./data/newdata/inputs.csv", "a")
     # run()
-    t1 = Thread(target = datasteam)
-    t2 = Thread(target = run)
+    t1 = Thread(target = datastream)
+    t2 = Thread(target = takeScreens)
     t1.start()
     t2.start()
     file.close()

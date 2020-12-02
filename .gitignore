@@ -1,2 +1,4 @@
 /data
 /.vscode
+/models
+/__pycache__
