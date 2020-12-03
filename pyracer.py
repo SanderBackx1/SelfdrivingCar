@@ -37,27 +37,31 @@ def sendInputs(x,z):
     j.update()
 
 
-def inputModel(steer, accel,brake):
+def inputRDP(steer, accel,brake):
     print(f'X:{steer} accel {accel} Brake:{brake}')
+
+    deadzone = 10000
+    x_max_dz = x_max - deadzone
+
     #unnormalizing
+    s = steer * 254 - 127
+    s_tosend = 0
+    if s > 0:
+        s_tosend = (s/127) * x_max_dz + deadzone
+    elif s < 0:
+        s_tosend = ((s*-1)/127  * x_max_dz + deadzone) * -1
 
-    #x_max = 32767
+
     x_half = int(x_max/2)
+    s_tosend = int((s_tosend + x_max) / 2)
+    # translated = s_tosend * 2 - 32767
+    
+    a = accel * x_max
+    b =brake * x_max
 
-
-    # -255 255
-    #0 - 1 
-    #<0.5  0.5>
-    # 
-
-
-    s  = steer * 32767
-    a = accel * x_half 
-    b = brake * x_half * -1
     j.data.wAxisX = int(s)
-    j.data.wAxisZ=int( a + b)
-
-    j.data.wAxisY= int(0)
+    j.data.wAxisZ=int(b)
+    j.data.wAxisY= int(a)
     #send data to vJoy device
     j.update()
 
@@ -65,7 +69,7 @@ def inputModel(steer, accel,brake):
 def resetkey():
     j.data.wAxisX = int(x_max/2)
     j.data.wAxisZ=int(x_max/2)
-
+    
     j.data.wAxisY= int(x_max/2)
     #send data to vJoy device
     j.update()
@@ -112,7 +116,7 @@ def run(udp):
         if autopilot:
             prediction = getOutput(resized)
             # print(prediction[0][0], prediction[0][1])
-            sendInputs(prediction[0][0], prediction[0][1])
+            inputRDP(prediction[0][0], prediction[0][1], prediction[0][2] )
         if recording:
             framecounter+=1
             if framecounter%5==0:
