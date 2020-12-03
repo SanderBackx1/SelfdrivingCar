@@ -10,7 +10,9 @@ import struct
 import socket
 import csv
 import settings
+import keyboard
 from threading import Thread
+from functools import partial
 
 counter = 0
 game_pad = None
@@ -27,7 +29,7 @@ accel = 0
 steer = 0
 
 
-def record_game_pad():
+def record_game_pad(dsout):
     global counter
     input_counter = 0
     steering_x_captured = None
@@ -50,14 +52,16 @@ def record_game_pad():
                 throttle_captured = event.state
             if event.code == "ABS_X" and event.state != None:
                 steering_x_captured = event.state
+                if(dsout.steer>0):
+                    print(event.state, dsout.steer, event.state/dsout.steer)
             if event.code == "ABS_Y" and event.state != None:
                 steering_y_captured = event.state
 
-    print("  - game-pad : OK")
 
     brake_captured = 0 if brake_captured == None else brake_captured
     throttle_captured = 0 if throttle_captured == None else throttle_captured
 
+    
 
     # file = open(, "a")
     # file.write(str(counter) + "_image.png" + "," + str(steering_x_captured) + "," + str(speed) + "," + str(throttle_captured) + "," + str(brake_captured) + "\n")
@@ -90,7 +94,7 @@ def datastream(dsout):
 
         # print(f'Speed {fdp.speed} Brake {fdp.brake} Acceleration {fdp.accel}  {fdp.steer}')
         # print(f'Speed: {speed}, Brake: {brake}, ')
-        
+        # print(fdp.steer)
 
 class DSOutput:
     def __init__(self):
@@ -109,7 +113,7 @@ def takeScreens():
     frames = 10
     with open("./data/newdata/inputs.csv", 'a', newline='', buffering=1) as outfile:
         csv_writer = csv.writer(outfile)
-        while runLoops:
+        while settings.run_loops:
 
             resolutionx, resolutiony = (1600,900)
             margin = 40
@@ -120,7 +124,7 @@ def takeScreens():
             smoll = cv2.resize(printscreen, (int(resolutionx/2),int(resolutiony/2)))
             cv2.imshow('window', smoll)
 
-            
+            record_game_pad()
 
             ##change to your preferred folder
             if record :
@@ -137,11 +141,11 @@ def takeScreens():
 
             #Check fps if needed
             k = cv2.waitKey(25)
-            if  k == ord('q'):
+            if k == ord('g') or keyboard.is_pressed('g'):
                 cv2.destroyAllWindows()
-                runLoops = False
+                settings.run_loops = False
                 break
-            elif k == ord('r'):
+            elif k == ord('r') or keyboard.is_pressed('r'):
                 record = not record
                 time.sleep(5)
                 print(f'Record {record}')
@@ -149,8 +153,10 @@ def takeScreens():
 if __name__ == '__main__':
     print("Prepare to drive!")
     file = open("./data/newdata/inputs.csv", "a")
+    dsout = DSOutput()
+    settings.init()
     # run()
-    t1 = Thread(target = datastream)
+    t1 = Thread(target = partial(datastream,dsout))
     t2 = Thread(target = takeScreens)
     t1.start()
     t2.start()
