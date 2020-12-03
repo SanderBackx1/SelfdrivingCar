@@ -46,20 +46,22 @@ def inputRDP(steer, accel,brake):
     #unnormalizing
     s = steer * 254 - 127
     s_tosend = 0
-    if s > 0:
+    if s > 5:
         s_tosend = (s/127) * x_max_dz + deadzone
-    elif s < 0:
+    elif s < -5:
         s_tosend = ((s*-1)/127  * x_max_dz + deadzone) * -1
 
 
-    x_half = int(x_max/2)
     s_tosend = int((s_tosend + x_max) / 2)
+    x_half = int(x_max/2)
+
+    
     # translated = s_tosend * 2 - 32767
     
     a = accel * x_max
     b =brake * x_max
 
-    j.data.wAxisX = int(s)
+    j.data.wAxisX = int(s_tosend)
     j.data.wAxisZ=int(b)
     j.data.wAxisY= int(a)
     #send data to vJoy device
@@ -68,9 +70,8 @@ def inputRDP(steer, accel,brake):
 
 def resetkey():
     j.data.wAxisX = int(x_max/2)
-    j.data.wAxisZ=int(x_max/2)
-    
-    j.data.wAxisY= int(x_max/2)
+    j.data.wAxisZ=int(0)
+    j.data.wAxisY= int(0)
     #send data to vJoy device
     j.update()
 
@@ -87,6 +88,7 @@ def run(udp):
     autopilot = False
     recording = False
     showFps = False
+    autorecord = False
     last_time = time.time()
     framecounter = 0 
 
@@ -140,7 +142,10 @@ def run(udp):
             print(f'autopilot {autopilot}')
         elif k == ord('f') or keyboard.is_pressed('f'):
             showFps = not showFps
-        elif k == ord('w') or keyboard.is_pressed('w') or keyboard.is_pressed('d') or keyboard.is_pressed('a')  : 
+        elif k == ord('r') or keyboard.is_pressed('r'):
+            autorecord = not autorecord
+            print(f'Autorecord: {autorecord}')
+        elif (k == ord('w') or keyboard.is_pressed('w') or keyboard.is_pressed('d') or keyboard.is_pressed('a')) and autorecord : 
             autopilot = False
             if not recording:
                 recording = True
@@ -148,6 +153,7 @@ def run(udp):
         
 if __name__ == '__main__':
     print("Prepare to drive!")
+    resetkey()
     dsout = DSOutput()
     t1 = Thread(target = partial(run, dsout))
     t2 = Thread(target = partial(datastream,dsout))
