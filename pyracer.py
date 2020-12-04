@@ -1,5 +1,5 @@
 from gather_data import takeScreens, datastream, DSOutput
-from racemodel import getOutput
+# from predict import predict
 from threading import Thread
 import pyvjoy
 import cv2
@@ -10,9 +10,12 @@ import numpy as np
 import keyboard
 from functools import partial
 
+from fastai.vision.all import *
 j = pyvjoy.VJoyDevice(1)
 x_max = 32767
-
+def get_x (r): return Path(f"./data/images/{r['img_path']}")
+def get_y(r): return [r['steer'], r['accel'], r['brake']]
+learn = load_learner('./models/export.pkl')
 def crop(img):
     x=0
     w=1600
@@ -57,9 +60,14 @@ def inputRDP(steer, accel,brake):
 
     
     # translated = s_tosend * 2 - 32767
-    
-    a = accel * x_max
-    b =brake * x_max
+    a = accel * x_max_dz + deadzone
+    b =brake * x_max_dz + deadzone
+    if accel <0.3:
+        a = 0
+    if brake < 0.3:
+        b = 0
+        
+
 
     j.data.wAxisX = int(s_tosend)
     j.data.wAxisZ=int(b)
@@ -116,7 +124,7 @@ def run(udp):
             last_time = time.time()
 
         if autopilot:
-            prediction = getOutput(resized)
+            prediction = learn.predict(resized)
             # print(prediction[0][0], prediction[0][1])
             inputRDP(prediction[0][0], prediction[0][1], prediction[0][2] )
         if recording:
