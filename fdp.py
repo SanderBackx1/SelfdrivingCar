@@ -1,3 +1,11 @@
+
+#THIS IS NOT MY CODE
+#THIS IS CODE FROM https://github.com/nettrom/forza_motorsport
+#We use this code to convert the packets we receive from the forza udp to readable data
+
+#Credits go to Morten Wang, https://github.com/nettrom
+
+
 #!/usr/env/python
 # -*- coding: utf-8 -*-
 '''
